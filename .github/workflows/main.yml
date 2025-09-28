@@ -18,8 +18,8 @@ jobs:
 
   terraform:
     needs: git
-    uses: ./.github/workflows/terraform/terraform.yml
+    uses: ./.github/workflows/terraform.yml
 
   release:
-    needs: [git, build]
+    needs: [git, terraform]
     uses: ./.github/workflows/release.yml
