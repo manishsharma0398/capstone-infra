@@ -1,4 +1,4 @@
-name: Terraform Infra Pipeline
+name: Infra Pipeline
 
 on:
   push:
