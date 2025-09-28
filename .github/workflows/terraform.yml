@@ -1,12 +1,7 @@
 name: Terraform
 
 on:
-  push:
-    branches:
-      - "**"
-  pull_request:
-    branches:
-      - "**"
+  workflow_call: {}
   workflow_dispatch: # ✅ allows manual runs (for apply)
 
 jobs:
