@@ -1,0 +1,25 @@
+name: Terraform Infra Pipeline
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    branches:
+      - "**"
+
+permissions:
+  contents: write
+
+jobs:
+  git:
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name != github.event.pull_request.base.repo.full_name)
+    uses: ./.github/workflows/git.yml
+
+  terraform:
+    needs: git
+    uses: ./.github/workflows/terraform/terraform.yml
+
+  release:
+    needs: [git, build]
+    uses: ./.github/workflows/release.yml
