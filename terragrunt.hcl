@@ -47,7 +47,7 @@ terraform {
 provider "aws" {
   region = "${local.region}"
 }
-  EOF
+EOF
 }
 
 # Pass down shared inputs
