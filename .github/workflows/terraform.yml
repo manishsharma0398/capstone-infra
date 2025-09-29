@@ -47,6 +47,9 @@ jobs:
           name: terragrunt-plan
           path: terragrunt-plan.log
 
+      - name: Terragrunt Apply (all modules)
+        run: terragrunt apply --all --non-interactive --auto-approve --terragrunt-log-level debug
+
   apply:
     needs: plan
     runs-on: ubuntu-latest
