@@ -18,6 +18,5 @@ terraform {
 }
 
 provider "aws" {
-  region  = "ap-south-2"
-  profile = "capstone-infra"
+  region = "ap-south-2"
 }
