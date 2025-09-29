@@ -78,4 +78,4 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terragrunt Apply (all modules)
-        run: terragrunt run-all apply -auto-approve
+        run: terragrunt apply --all --non-interactive --auto-approve
