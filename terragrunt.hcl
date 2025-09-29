@@ -2,10 +2,10 @@
 
 # Local values (shared defaults)
 locals {
-  project     = "Capstone"
-  owner       = "Manish"
-  region      = "ap-south-2"
-  
+  project = "Capstone"
+  owner   = "Manish"
+  region  = "ap-south-2"
+
   common_tags = {
     Project = "Capstone"
     Owner   = "Manish"
