@@ -61,7 +61,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8
+          terraform_version: "1.13.3"
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -74,9 +74,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: tfplan
+          path: foundations
 
       - name: Terraform Init
         run: terraform init
+        working-directory: foundations
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
+        working-directory: foundations
