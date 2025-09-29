@@ -42,24 +42,13 @@ resource "aws_iam_group_policy" "terraform_s3_state_access" {
         Effect   = "Allow"
         Action   = "s3:ListBucket"
         Resource = "arn:aws:s3:::capstone-community-connect-tf-state"
-        Condition = {
-          StringLike = {
-            "s3:prefix" = "foundation/*"
-          }
-        }
       },
       {
         Sid      = "AllowStateObjectAccess"
         Effect   = "Allow"
         Action   = ["s3:GetObject", "s3:PutObject"]
-        Resource = "arn:aws:s3:::capstone-community-connect-tf-state/foundation/*"
+        Resource = "arn:aws:s3:::capstone-community-connect-tf-state/*"
       },
-      {
-        Sid      = "AllowLockFileManagement"
-        Effect   = "Allow"
-        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
-        Resource = "arn:aws:s3:::capstone-community-connect-tf-state/foundation/*.tflock"
-      }
     ]
   })
 }

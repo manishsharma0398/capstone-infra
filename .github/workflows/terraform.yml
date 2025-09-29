@@ -1,4 +1,4 @@
-name: Terraform
+name: Terraform (Terragrunt)
 
 on:
   workflow_call:
@@ -23,6 +23,14 @@ jobs:
         with:
           terraform_version: "1.13.3"
 
+      - name: Check terragrunt HCL
+        uses: gruntwork-io/terragrunt-action@v3
+        with:
+          tg_version: "0.88.0"
+          tf_path: "terraform"
+          tg_dir: "."
+          tg_command: "hcl fmt --check --diff"
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.3.0
         with:
@@ -30,23 +38,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform Init
-        run: terraform init
-        working-directory: foundations
+      - name: Terragrunt Plan (all modules)
+        run: terragrunt run-all plan | tee terragrunt-plan.log
 
-      - name: Terraform Format
-        run: terraform fmt -check
-        working-directory: foundations
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-        working-directory: foundations
-
-      - name: Upload Plan Artifact
+      - name: Upload Plan Logs
         uses: actions/upload-artifact@v4
         with:
-          name: tfplan
-          path: foundations/tfplan
+          name: terragrunt-plan
+          path: terragrunt-plan.log
+
+      - name: Terragrunt Apply (all modules)
+        run: terragrunt apply --all --non-interactive --auto-approve --terragrunt-log-level debug
 
   apply:
     needs: plan
@@ -63,23 +65,20 @@ jobs:
         with:
           terraform_version: "1.13.3"
 
+      - name: Check terragrunt HCL
+        uses: gruntwork-io/terragrunt-action@v3
+        with:
+          tg_version: "0.88.0"
+          tf_path: "terraform"
+          tg_dir: "."
+          tg_command: "hcl fmt --check --diff"
+
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v4.3.0
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Download Plan Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: foundations
-
-      - name: Terraform Init
-        run: terraform init
-        working-directory: foundations
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
-        working-directory: foundations
+      - name: Terragrunt Apply (all modules)
+        run: terragrunt apply --all --non-interactive --auto-approve --terragrunt-log-level debug
