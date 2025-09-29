@@ -1,0 +1,44 @@
+mode: ContinuousDelivery
+increment: Patch
+
+major-version-bump-message: '\+semver:\s?(breaking|major|release)'
+minor-version-bump-message: '\+semver:\s?(feat|feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+
+commit-message-incrementing: Enabled
+
+branches:
+  master:
+    mode: ContinuousDelivery
+    regex: ^master$
+    increment: Patch
+    prevent-increment-of-merged-branch-version: true
+    tag: ""
+
+  feature:
+    mode: ContinuousDelivery
+    regex: ^(feat|feature)[/-]
+    increment: Minor
+    prevent-increment-of-merged-branch-version: false
+    tag: useBranchName
+
+  hotfix:
+    mode: ContinuousDelivery
+    regex: ^(fix|hotfix)[/-]
+    increment: Patch
+    prevent-increment-of-merged-branch-version: false
+    tag: useBranchName
+
+  release:
+    mode: ContinuousDelivery
+    regex: ^releases?[/-]
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    tag: ""
+
+  pull-request:
+    mode: ContinuousDelivery
+    regex: ^(pull|pull\-requests|pr)[/-]
+    increment: Inherit
+    prevent-increment-of-merged-branch-version: false
+    tag: useBranchName

@@ -1,0 +1,47 @@
+name: Git
+
+on:
+  workflow_call: {}
+
+jobs:
+  runner:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup GitVersion
+        uses: GitTools/actions/gitversion/setup@v3
+        with:
+          versionSpec: "5.x"
+
+      - name: Run GitVersion
+        id: gitversion
+        uses: GitTools/actions/gitversion/execute@v3
+        with:
+          useConfigFile: true
+          configFilePath: GitVersion.yml
+
+      - name: Save git tags to artifact
+        id: gittag
+        run: |
+          BRANCH="${{ env.GitVersion_BranchName }}"
+          if [ "$BRANCH" = "master" ]; then
+            SEMVER="${{ env.GitVersion_SemVer }}"
+          else  
+            FULL_SEMVER="${{ env.GitVersion_FullSemVer }}"
+            COMMIT_NUMBER=${{ env.GitVersion_CommitsSinceVersionSource }}
+
+            # Replace ".<number>+<commits>" with ".<commits>"
+            SEMVER=$(echo "$FULL_SEMVER" | sed -E "s/\.[0-9]+\+([0-9]+)/.\1/")
+          fi
+
+          echo "SEMVER=$SEMVER" >> build.env
+
+      - name: Upload version artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tags
+          path: build.env
