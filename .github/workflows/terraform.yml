@@ -32,18 +32,21 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+        working-directory: foundations
 
       - name: Terraform Format
         run: terraform fmt -check
+        working-directory: foundations
 
       - name: Terraform Plan
         run: terraform plan -out=tfplan
+        working-directory: foundations
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
-          path: tfplan
+          path: foundations/tfplan
 
   apply:
     needs: plan
