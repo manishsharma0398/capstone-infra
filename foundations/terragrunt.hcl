@@ -11,7 +11,7 @@ terraform {
 inputs = {
   tf_state_bucket_name       = "capstone-community-connect-tf-state"
   terraform_infra_group_name = "capstone-project-infra"
-    
+
   tags = {
     Project     = "Capstone"
     Environment = "Infra"

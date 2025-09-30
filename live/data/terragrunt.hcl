@@ -6,11 +6,11 @@ include "root" {
 
 locals {
   global_vars = read_terragrunt_config(find_in_parent_folders())
-  env = "Data"
+  env         = "Data"
 }
 
 terraform {
-  source = "../../../modules/data"
+  source = "../../modules/data"
 }
 
 inputs = {
