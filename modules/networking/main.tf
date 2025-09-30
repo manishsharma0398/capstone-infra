@@ -15,6 +15,7 @@ resource "aws_vpc" "main" {
   )
 }
 
+# Public subnets
 resource "aws_subnet" "public" {
   count             = length(var.public_subnets)
   vpc_id            = aws_vpc.main.id
@@ -26,6 +27,7 @@ resource "aws_subnet" "public" {
   )
 }
 
+# Private subnets
 resource "aws_subnet" "private" {
   count             = length(var.private_subnets)
   vpc_id            = aws_vpc.main.id
@@ -43,58 +45,49 @@ resource "aws_internet_gateway" "igw" {
   tags   = merge(var.tags, { Name = "${local.vpc_name_with_slug}-igw" })
 }
 
-# Route Tables - public
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-  tags   = merge(var.tags, { Name = "${local.vpc_name_with_slug}-rtb-public" })
+# Manage the default RTB and rename it as "public"
+resource "aws_default_route_table" "public" {
+  default_route_table_id = aws_vpc.main.default_route_table_id
+
+  tags = merge(var.tags, {
+    Name = "${local.vpc_name_with_slug}-rtb-public"
+  })
 }
 
-# Route Tables - private
+# Add internet access route to the default RTB
+resource "aws_route" "public_internet_access" {
+  route_table_id         = aws_default_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw.id
+}
+
+# Associate all public subnets with the renamed default RTB
+resource "aws_route_table_association" "public_assoc" {
+  count          = length(var.public_subnets)
+  subnet_id      = aws_subnet.public[count.index].id
+  route_table_id = aws_default_route_table.public.id
+}
+
+# Private Route Table (one shared for all private subnets)
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
   tags   = merge(var.tags, { Name = "${local.vpc_name_with_slug}-rtb-private" })
 }
 
-# Make the private RTB the "main" RTB of the VPC (replaces AWS default one)
+# Make the private RTB the "main" RTB of the VPC
 resource "aws_main_route_table_association" "main" {
   vpc_id         = aws_vpc.main.id
   route_table_id = aws_route_table.private.id
 }
 
-
-# Manage the AWS-created default RTB to avoid console confusion
-resource "aws_default_route_table" "default" {
-  default_route_table_id = aws_vpc.main.default_route_table_id
-
-  tags = merge(var.tags, {
-    Name    = "${local.vpc_name_with_slug}-rtb-default"
-    Managed = "Terraform"
-    Note    = "Default RTB - not in use"
-  })
-}
-
-# Public route
-resource "aws_route" "public_internet_access" {
-  route_table_id         = aws_route_table.public.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.igw.id
-}
-
-# Associations - public
-resource "aws_route_table_association" "public_assoc" {
-  count          = length(var.public_subnets)
-  subnet_id      = aws_subnet.public[count.index].id
-  route_table_id = aws_route_table.public.id
-}
-
-# Associations - private
+# Associate private subnets
 resource "aws_route_table_association" "private_assoc" {
   count          = length(var.private_subnets)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }
 
-# VPC Endpoint for S3 (Gateway type)
+# VPC Endpoint for S3 (Gateway type - attach to private RTB)
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.main.id
   service_name      = "com.amazonaws.${var.aws_region}.s3"
