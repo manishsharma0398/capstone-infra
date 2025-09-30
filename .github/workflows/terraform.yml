@@ -52,7 +52,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terragrunt Plan (${{ inputs.environment }})
-        run: terragrunt run-all plan --non-interactive
+        run: terragrunt plan --all --non-interactive
         working-directory: ./live/${{ inputs.environment }}
         env:
           TF_INPUT: 0
