@@ -6,7 +6,7 @@ on:
       environment:
         required: true
         type: string
-        description: Environment to deploy to (stg/prd)
+        description: Environment to deploy to
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -25,6 +25,7 @@ on:
           - prd
 
 env:
+  TF_INPUT: "0"
   AWS_REGION: "ap-south-2"
 
 jobs:
@@ -56,10 +57,6 @@ jobs:
       - name: Terragrunt Plan (${{ inputs.environment }})
         working-directory: ./live/${{ inputs.environment }}
         run: terragrunt plan --all --non-interactive
-        env:
-          TF_INPUT: 0
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   apply:
     runs-on: ubuntu-latest
@@ -87,19 +84,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # 👇 This step only runs for foundations
-      - name: Import S3 state bucket (one-time)
-        if: ${{ inputs.environment == 'foundations' }}
-        working-directory: ./live/foundations
-        run: |
-          set -e
-          terragrunt init --non-interactive
-          terragrunt import aws_s3_bucket.tf_state capstone-community-connect-tf-state || true
-
       - name: Terragrunt Apply (${{ inputs.environment }})
         working-directory: ./live/${{ inputs.environment }}
         run: terragrunt apply --all --non-interactive --auto-approve
-        env:
-          TF_INPUT: 0
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

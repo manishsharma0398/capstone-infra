@@ -7,6 +7,17 @@ on:
   pull_request:
     branches:
       - "**"
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: choice
+        description: Environment to deploy to
+        options:
+          - foundations
+          - data
+          - stg
+          - prd
 
 permissions:
   contents: write
@@ -21,6 +32,7 @@ jobs:
     strategy:
       matrix:
         environment: [foundations, data, stg, prd]
+      fail-fast: false
     uses: ./.github/workflows/terraform.yml
     with:
       environment: ${{ matrix.environment }}
