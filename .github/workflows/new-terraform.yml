@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: [dev, stg, tst, prd]
+        env: [stg, prd]
+    if: ${{ matrix.env != 'prd' || github.ref == 'refs/heads/master' }}
     environment: ${{ matrix.env }}
     steps:
       - uses: actions/checkout@v4
@@ -38,7 +39,8 @@ jobs:
     needs: plan
     strategy:
       matrix:
-        env: [dev, stg, tst, prd]
+        env: [stg, prd]
+    if: ${{ matrix.env != 'prd' || github.ref == 'refs/heads/master' }}
     environment: ${{ matrix.env }} # <-- requires approval per env
     steps:
       - uses: actions/checkout@v4
