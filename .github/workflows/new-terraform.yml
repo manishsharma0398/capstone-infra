@@ -1,20 +1,21 @@
 name: Terraform (Terragrunt)
 
 on:
-  workflow_dispatch: # allow manual trigger
   workflow_call:
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
+  workflow_dispatch: # optional, only if you want to run it manually
 
 jobs:
   plan:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: [dev, stg, tst, prd] # multiple environments
+        env: [dev, stg, tst, prd]
+    environment: ${{ matrix.env }}
     steps:
       - uses: actions/checkout@v4
 
@@ -25,12 +26,12 @@ jobs:
 
       - name: Terraform Plan (${{ matrix.env }})
         run: |
-          terragrunt run-all plan --non-interactive -out=tfplan-${{ matrix.env }}
+          terragrunt run-all plan --non-interactive
         working-directory: ./environments/${{ matrix.env }}
         env:
           TF_INPUT: 0
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_${{ upper(matrix.env) }} }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_${{ upper(matrix.env) }} }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
   apply:
     runs-on: ubuntu-latest
@@ -53,5 +54,5 @@ jobs:
         working-directory: ./environments/${{ matrix.env }}
         env:
           TF_INPUT: 0
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_${{ upper(matrix.env) }} }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_${{ upper(matrix.env) }} }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
