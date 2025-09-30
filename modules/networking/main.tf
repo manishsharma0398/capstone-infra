@@ -61,6 +61,18 @@ resource "aws_main_route_table_association" "main" {
   route_table_id = aws_route_table.private.id
 }
 
+
+# Manage the AWS-created default RTB to avoid console confusion
+resource "aws_default_route_table" "default" {
+  default_route_table_id = aws_vpc.main.default_route_table_id
+
+  tags = merge(var.tags, {
+    Name    = "${local.vpc_name_with_slug}-rtb-default"
+    Managed = "Terraform"
+    Note    = "Default RTB - not in use"
+  })
+}
+
 # Public route
 resource "aws_route" "public_internet_access" {
   route_table_id         = aws_route_table.public.id
