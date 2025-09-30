@@ -20,7 +20,7 @@ jobs:
     needs: git
     strategy:
       matrix:
-        environment: [stg, prd, data]
+        environment: [foundations, data, stg, prd]
     uses: ./.github/workflows/terraform.yml
     with:
       environment: ${{ matrix.environment }}
