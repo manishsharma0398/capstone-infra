@@ -87,6 +87,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # 👇 This step only runs for foundations
+      - name: Import S3 state bucket (one-time)
+        if: ${{ inputs.environment == 'foundations' }}
+        working-directory: ./live/foundations
+        run: |
+          set -e
+          terragrunt init --non-interactive
+          terraform import aws_s3_bucket.tf_state capstone-community-connect-tf-state || true
+
       - name: Terragrunt Apply (${{ inputs.environment }})
         working-directory: ./live/${{ inputs.environment }}
         run: terragrunt apply --all --non-interactive --auto-approve
