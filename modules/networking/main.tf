@@ -105,4 +105,8 @@ resource "aws_vpc_endpoint" "s3" {
   tags = merge(var.tags, {
     Name = "${local.vpc_name_with_slug}-vpce-s3"
   })
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
