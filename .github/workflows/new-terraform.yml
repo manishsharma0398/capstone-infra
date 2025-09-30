@@ -14,8 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        env: [stg, prd]
-    if: ${{ matrix.env != 'prd' || github.ref == 'refs/heads/master' }}
+        include:
+          - env: stg
+          - env: prd
+            branch: master
+    if: ${{ matrix.branch == '' || github.ref == format('refs/heads/{0}', matrix.branch) }}
     environment: ${{ matrix.env }}
     steps:
       - uses: actions/checkout@v4
@@ -39,9 +42,12 @@ jobs:
     needs: plan
     strategy:
       matrix:
-        env: [stg, prd]
-    if: ${{ matrix.env != 'prd' || github.ref == 'refs/heads/master' }}
-    environment: ${{ matrix.env }} # <-- requires approval per env
+        include:
+          - env: stg
+          - env: prd
+            branch: master
+    if: ${{ matrix.branch == '' || github.ref == format('refs/heads/{0}', matrix.branch) }}
+    environment: ${{ matrix.env }}
     steps:
       - uses: actions/checkout@v4
 
