@@ -18,6 +18,9 @@ jobs:
 
   terraform:
     needs: git
+    strategy:
+      matrix:
+        environment: [stg, prd]
     uses: ./.github/workflows/terraform.yml
     secrets:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
