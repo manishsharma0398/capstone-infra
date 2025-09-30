@@ -9,11 +9,13 @@ on:
         required: true
   workflow_dispatch: # ✅ allows manual runs (for apply)
 
+env:
+  AWS_REGION: ap-south-2
+
 jobs:
   plan:
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ap-south-2
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,14 +50,12 @@ jobs:
           path: terragrunt-plan.log
 
       - name: Terragrunt Apply (all modules)
-        run: terragrunt apply --all --non-interactive --auto-approve --terragrunt-log-level debug
+        run: terragrunt apply --all --non-interactive --auto-approve
 
   apply:
     needs: plan
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' # ✅ manual only
-    env:
-      AWS_REGION: ap-south-2
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -81,4 +81,4 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Terragrunt Apply (all modules)
-        run: terragrunt apply --all --non-interactive --auto-approve --terragrunt-log-level debug
+        run: terragrunt apply --all --non-interactive --auto-approve
