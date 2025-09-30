@@ -43,31 +43,39 @@ resource "aws_internet_gateway" "igw" {
   tags   = merge(var.tags, { Name = "${local.vpc_name_with_slug}-igw" })
 }
 
-# Route Table
+# Route Tables - public
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
   tags   = merge(var.tags, { Name = "${local.vpc_name_with_slug}-rtb-public" })
 }
 
-# Private route table
+# Route Tables - private
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
   tags   = merge(var.tags, { Name = "${local.vpc_name_with_slug}-rtb-private" })
 }
 
+# Make the private RTB the "main" RTB of the VPC (replaces AWS default one)
+resource "aws_main_route_table_association" "main" {
+  vpc_id         = aws_vpc.main.id
+  route_table_id = aws_route_table.private.id
+}
+
+# Public route
 resource "aws_route" "public_internet_access" {
   route_table_id         = aws_route_table.public.id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.igw.id
 }
 
+# Associations - public
 resource "aws_route_table_association" "public_assoc" {
   count          = length(var.public_subnets)
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
-# Associate private subnets
+# Associations - private
 resource "aws_route_table_association" "private_assoc" {
   count          = length(var.private_subnets)
   subnet_id      = aws_subnet.private[count.index].id
