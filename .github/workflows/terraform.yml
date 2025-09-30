@@ -21,6 +21,7 @@ on:
         options:
           - stg
           - prd
+          - data
 
 env:
   AWS_REGION: "ap-south-2"
