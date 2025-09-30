@@ -70,6 +70,21 @@ jobs:
         with:
           terraform_version: 1.13.3
 
+      - name: Check terragrunt HCL
+        uses: gruntwork-io/terragrunt-action@v3
+        with:
+          tg_version: "0.88.0"
+          tf_path: "terraform"
+          tg_dir: "."
+          tg_command: "hcl fmt --check --diff"
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4.3.0
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
       - name: Terragrunt Apply (${{ inputs.environment }})
         run: terragrunt run-all apply --non-interactive --auto-approve
         working-directory: ./live/${{ inputs.environment }}
