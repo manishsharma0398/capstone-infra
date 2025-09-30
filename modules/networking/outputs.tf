@@ -31,11 +31,11 @@ output "public_route_table_id" {
 }
 
 # ------------------------------
-# Private Route Table (shared)
+# Private Route Tables (one per private subnet)
 # ------------------------------
-output "private_route_table_id" {
-  description = "ID of the single private route table (shared by all private subnets)"
-  value       = aws_route_table.private.id
+output "private_route_table_ids" {
+  description = "IDs of private route tables (one per private subnet)"
+  value       = aws_route_table.private[*].id
 }
 
 # ------------------------------

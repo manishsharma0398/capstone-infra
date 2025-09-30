@@ -75,20 +75,22 @@ resource "aws_route_table_association" "public_assoc" {
 }
 
 # ------------------------------
-# Private Route Table (shared)
+# Private Route Tables — one per private subnet
 # ------------------------------
 resource "aws_route_table" "private" {
+  count  = length(var.private_subnets)
   vpc_id = aws_vpc.main.id
 
   tags = merge(var.tags, {
-    Name = "${local.vpc_name_with_slug}-rtb-private"
+    Name = "${local.vpc_name_with_slug}-rtb-private${count.index + 1}-${var.azs[count.index]}"
   })
 }
 
+# Associate each private subnet with its own RTB
 resource "aws_route_table_association" "private_assoc" {
   count          = length(var.private_subnets)
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
+  route_table_id = aws_route_table.private[count.index].id
 }
 
 # ------------------------------
@@ -99,8 +101,8 @@ resource "aws_vpc_endpoint" "s3" {
   service_name      = "com.amazonaws.${var.aws_region}.s3"
   vpc_endpoint_type = "Gateway"
 
-  # Attach endpoint to the single private RTB
-  route_table_ids = [aws_route_table.private.id]
+  # Attach this one endpoint to ALL private RTBs
+  route_table_ids = aws_route_table.private[*].id
 
   tags = merge(var.tags, {
     Name = "${local.vpc_name_with_slug}-vpce-s3"
