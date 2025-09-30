@@ -62,6 +62,13 @@ resource "aws_route_table_association" "public_assoc" {
   route_table_id = aws_route_table.public.id
 }
 
+# Associate private subnets
+resource "aws_route_table_association" "private_assoc" {
+  count          = length(var.private_subnets)
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
+}
+
 # VPC Endpoint for S3 (Gateway type)
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.main.id
