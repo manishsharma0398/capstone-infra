@@ -5,7 +5,7 @@ include {
 }
 
 terraform {
-  source = "../modules/foundations"
+  source = "../../modules/foundations"
 }
 
 inputs = {
