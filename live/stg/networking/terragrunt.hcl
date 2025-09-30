@@ -8,7 +8,13 @@ locals {
 }
 
 terraform {
-  source = "..//resources"
+  source = "../../../modules/networking"
+}
+
+# Just declare dependency, no outputs needed
+dependency "foundations" {
+  config_path = "../../../foundations"
+  skip_outputs = true
 }
 
 inputs = {
@@ -19,8 +25,10 @@ inputs = {
   private_subnets  = ["10.0.11.0/24", "10.0.12.0/24", "10.0.13.0/24"]
 
   tags = {
-    Project = "Capstone"
-    Owner   = "Manish"
-    Env     = "stg"
+    Project     = "Capstone"
+    Environment = "${local.env}"
+    Owner       = "Manish"
+    Role        = "Terraform-State"
+    ManagedBy   = "Terraform"
   }
 }

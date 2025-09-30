@@ -1,14 +1,7 @@
 # S3 bucket for state
 resource "aws_s3_bucket" "tf_state" {
-  bucket = "capstone-community-connect-tf-state"
-
-  tags = {
-    Project     = "Capstone"
-    Environment = "Infra"
-    Owner       = "Manish"
-    Role        = "Terraform-State"
-    ManagedBy   = "Terraform"
-  }
+  bucket = var.tf_state_bucket_name
+  tags   = var.tags
 }
 
 resource "aws_s3_bucket_versioning" "versioning_tf_state" {
@@ -32,7 +25,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "tf_state_encrypti
 # Attach Terraform S3 policy to the infra group
 resource "aws_iam_group_policy" "terraform_s3_state_access" {
   name  = "TerraformS3StateAccess"
-  group = "capstone-project-infra"
+  group = var.terraform_infra_group_name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -41,13 +34,13 @@ resource "aws_iam_group_policy" "terraform_s3_state_access" {
         Sid      = "AllowListBucket"
         Effect   = "Allow"
         Action   = "s3:ListBucket"
-        Resource = "arn:aws:s3:::capstone-community-connect-tf-state"
+        Resource = "arn:aws:s3:::${var.tf_state_bucket_name}"
       },
       {
         Sid      = "AllowStateObjectAccess"
         Effect   = "Allow"
         Action   = ["s3:GetObject", "s3:PutObject"]
-        Resource = "arn:aws:s3:::capstone-community-connect-tf-state/*"
+        Resource = "arn:aws:s3:::${var.tf_state_bucket_name}/*"
       },
     ]
   })
