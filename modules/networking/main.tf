@@ -49,6 +49,11 @@ resource "aws_route_table" "public" {
   tags   = merge(var.tags, { Name = "${local.vpc_name_with_slug}-rtb-public" })
 }
 
+# Private route table
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.main.id
+  tags   = merge(var.tags, { Name = "${local.vpc_name_with_slug}-rtb-private" })
+}
 
 resource "aws_route" "public_internet_access" {
   route_table_id         = aws_route_table.public.id
