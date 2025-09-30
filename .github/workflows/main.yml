@@ -1,4 +1,4 @@
-name: Infra Pipeline
+name: Infra-Pipeline
 
 on:
   push:
@@ -29,6 +29,7 @@ jobs:
 
   terraform:
     needs: git
+    name: Terraform
     strategy:
       matrix:
         environment: [foundations, data, stg, prd]
