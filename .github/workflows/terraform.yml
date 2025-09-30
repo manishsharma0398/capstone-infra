@@ -2,26 +2,42 @@ name: Terraform (Terragrunt)
 
 on:
   workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: Environment to deploy to
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
       AWS_SECRET_ACCESS_KEY:
         required: true
-  workflow_dispatch: # ✅ allows manual runs (for apply)
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: choice
+        description: Environment to deploy to
+        options:
+          - foundations
+          - data
+          - stg
+          - prd
+
+env:
+  TF_INPUT: "0"
+  AWS_REGION: "ap-south-2"
 
 jobs:
   plan:
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ap-south-2
+    if: ${{ inputs.environment != 'prd' || github.ref == 'refs/heads/master' }}
+    environment: ${{ inputs.environment }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.13.3"
+          terraform_version: 1.13.3
 
       - name: Check terragrunt HCL
         uses: gruntwork-io/terragrunt-action@v3
@@ -38,32 +54,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terragrunt Plan (all modules)
-        run: terragrunt run-all plan | tee terragrunt-plan.log
-
-      - name: Upload Plan Logs
-        uses: actions/upload-artifact@v4
-        with:
-          name: terragrunt-plan
-          path: terragrunt-plan.log
-
-      - name: Terragrunt Apply (all modules)
-        run: terragrunt apply --all --non-interactive --auto-approve --terragrunt-log-level debug
+      - name: Terragrunt Plan (${{ inputs.environment }})
+        working-directory: ./live/${{ inputs.environment }}
+        run: terragrunt plan --all --non-interactive
 
   apply:
-    needs: plan
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' # ✅ manual only
-    env:
-      AWS_REGION: ap-south-2
+    if: ${{ inputs.environment != 'prd' || github.ref == 'refs/heads/master' }}
+    needs: plan
+    environment: ${{ inputs.environment }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.13.3"
+          terraform_version: 1.13.3
 
       - name: Check terragrunt HCL
         uses: gruntwork-io/terragrunt-action@v3
@@ -80,5 +84,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terragrunt Apply (all modules)
-        run: terragrunt apply --all --non-interactive --auto-approve --terragrunt-log-level debug
+      - name: Terragrunt Apply (${{ inputs.environment }})
+        working-directory: ./live/${{ inputs.environment }}
+        run: terragrunt apply --all --non-interactive --auto-approve
