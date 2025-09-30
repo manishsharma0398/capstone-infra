@@ -10,3 +10,8 @@ variable "tags" {
   type    = map(string)
   default = {}
 }
+
+variable "create_state_bucket" {
+  type    = bool
+  default = false
+}
