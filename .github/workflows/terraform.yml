@@ -1,84 +1,61 @@
-# name: Terraform (Terragrunt)
+name: Terraform (Terragrunt)
 
-# on:
-#   workflow_call:
-#     secrets:
-#       AWS_ACCESS_KEY_ID:
-#         required: true
-#       AWS_SECRET_ACCESS_KEY:
-#         required: true
-#   workflow_dispatch: # ✅ allows manual runs (for apply)
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: Environment to deploy to (stg/prd)
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: true
+        type: choice
+        description: Environment to deploy to
+        options:
+          - stg
+          - prd
 
-# env:
-#   AWS_REGION: ap-south-2
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.environment != 'prd' || github.ref == 'refs/heads/master' }}
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
 
-# jobs:
-#   plan:
-#     runs-on: ubuntu-latest
+      - name: Terragrunt Plan (${{ inputs.environment }})
+        run: terragrunt run-all plan --non-interactive
+        working-directory: ./live/${{ inputs.environment }}
+        env:
+          TF_INPUT: 0
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
+  apply:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.environment != 'prd' || github.ref == 'refs/heads/master' }}
+    needs: plan
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.3
 
-#       - name: Setup Terraform
-#         uses: hashicorp/setup-terraform@v3
-#         with:
-#           terraform_version: "1.13.3"
-
-#       - name: Check terragrunt HCL
-#         uses: gruntwork-io/terragrunt-action@v3
-#         with:
-#           tg_version: "0.88.0"
-#           tf_path: "terraform"
-#           tg_dir: "."
-#           tg_command: "hcl fmt --check --diff"
-
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v4.3.0
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: ${{ env.AWS_REGION }}
-
-#       - name: Terragrunt Plan (all modules)
-#         run: terragrunt run-all plan | tee terragrunt-plan.log
-
-#       - name: Upload Plan Logs
-#         uses: actions/upload-artifact@v4
-#         with:
-#           name: terragrunt-plan
-#           path: terragrunt-plan.log
-
-#       - name: Terragrunt Apply (all modules)
-#         run: terragrunt apply --all --non-interactive --auto-approve
-
-#   apply:
-#     needs: plan
-#     runs-on: ubuntu-latest
-#     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-
-#       - name: Setup Terraform
-#         uses: hashicorp/setup-terraform@v3
-#         with:
-#           terraform_version: "1.13.3"
-
-#       - name: Check terragrunt HCL
-#         uses: gruntwork-io/terragrunt-action@v3
-#         with:
-#           tg_version: "0.88.0"
-#           tf_path: "terraform"
-#           tg_dir: "."
-#           tg_command: "hcl fmt --check --diff"
-
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v4.3.0
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: ${{ env.AWS_REGION }}
-
-#       - name: Terragrunt Apply (all modules)
-#         run: terragrunt apply --all --non-interactive --auto-approve
+      - name: Terragrunt Apply (${{ inputs.environment }})
+        run: terragrunt run-all apply --non-interactive --auto-approve
+        working-directory: ./live/${{ inputs.environment }}
+        env:
+          TF_INPUT: 0
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
