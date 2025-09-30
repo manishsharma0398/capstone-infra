@@ -6,7 +6,8 @@ resource "aws_s3_bucket" "tf_state" {
 }
 
 resource "aws_s3_bucket_versioning" "versioning_tf_state" {
-  bucket = aws_s3_bucket.tf_state.id
+  count  = var.create_state_bucket ? 1 : 0
+  bucket = aws_s3_bucket.tf_state[0].id
 
   versioning_configuration {
     status = "Enabled"
@@ -14,7 +15,8 @@ resource "aws_s3_bucket_versioning" "versioning_tf_state" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "tf_state_encryption" {
-  bucket = aws_s3_bucket.tf_state.id
+  count  = var.create_state_bucket ? 1 : 0
+  bucket = aws_s3_bucket.tf_state[0].id
 
   rule {
     apply_server_side_encryption_by_default {
