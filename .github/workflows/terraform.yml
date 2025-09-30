@@ -94,7 +94,7 @@ jobs:
         run: |
           set -e
           terragrunt init --non-interactive
-          terraform import aws_s3_bucket.tf_state capstone-community-connect-tf-state || true
+          terragrunt import aws_s3_bucket.tf_state capstone-community-connect-tf-state || true
 
       - name: Terragrunt Apply (${{ inputs.environment }})
         working-directory: ./live/${{ inputs.environment }}
