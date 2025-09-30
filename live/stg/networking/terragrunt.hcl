@@ -13,7 +13,7 @@ terraform {
 
 # Just declare dependency, no outputs needed
 dependency "foundations" {
-  config_path = "../../../foundations"
+  config_path  = "../../../foundations"
   skip_outputs = true
 }
 
