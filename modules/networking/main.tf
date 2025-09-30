@@ -1,7 +1,7 @@
 locals {
-  vpc_name_with_slug   = "${var.tags.Project}-${var.environment_slug}"
-  full_vpc_name        = "${var.tags.Project}-${var.environment_slug}-vpc"
-  vpc_subnet_with_slug = "${var.tags.Project}-${var.environment_slug}-subnet"
+  vpc_name_with_slug   = lower("${var.tags.Project}-${var.environment_slug}")
+  full_vpc_name        = lower("${var.tags.Project}-${var.environment_slug}-vpc")
+  vpc_subnet_with_slug = lower("${var.tags.Project}-${var.environment_slug}-subnet")
 }
 
 resource "aws_vpc" "main" {
