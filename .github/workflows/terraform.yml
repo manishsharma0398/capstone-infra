@@ -22,6 +22,9 @@ on:
           - stg
           - prd
 
+env:
+  AWS_REGION: "ap-south-2"
+
 jobs:
   plan:
     runs-on: ubuntu-latest
