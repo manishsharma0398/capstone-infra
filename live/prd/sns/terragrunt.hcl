@@ -15,7 +15,7 @@ terraform {
 
 inputs = {
   environment_slug = "${local.env}"
-  name             = "user-notifications"
+  sns_name         = "user-notifications"
 
   tags = {
     Project     = "Capstone"
