@@ -1,0 +1,4 @@
+{
+  "*.{js,ts,tsx}": ["npx prettier --write"],
+  "*.{hcl,tf,tfvars}": ["terragrunt hcl fmt"]
+}
