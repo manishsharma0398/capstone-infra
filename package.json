@@ -2,6 +2,7 @@
   "name": "capstone-infra",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "commitizen": "commitizen",
     "prepare": "node .husky/install.mjs"
