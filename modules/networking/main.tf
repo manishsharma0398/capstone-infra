@@ -28,7 +28,8 @@ resource "aws_subnet" "public" {
   availability_zone = var.azs[count.index]
 
   tags = merge(var.tags, {
-    Name = "${local.vpc_subnet_with_slug}-public${count.index + 1}-${var.azs[count.index]}"
+    Name   = "${local.vpc_subnet_with_slug}-public${count.index + 1}-${var.azs[count.index]}"
+    Subnet = "Public"
   })
 }
 
@@ -39,7 +40,8 @@ resource "aws_subnet" "private" {
   availability_zone = var.azs[count.index]
 
   tags = merge(var.tags, {
-    Name = "${local.vpc_subnet_with_slug}-private${count.index + 1}-${var.azs[count.index]}"
+    Name   = "${local.vpc_subnet_with_slug}-private${count.index + 1}-${var.azs[count.index]}"
+    Subnet = "Private"
   })
 }
 
