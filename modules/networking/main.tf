@@ -1,3 +1,5 @@
+# modules\networking\main.tf
+
 locals {
   vpc_name_with_slug   = lower("${var.tags.Project}-${var.environment_slug}")
   full_vpc_name        = lower("${var.tags.Project}-${var.environment_slug}-vpc")
@@ -113,4 +115,79 @@ resource "aws_vpc_endpoint" "s3" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+# ------------------------------
+# VPC Endpoint (Secrets Manager)
+# ------------------------------
+resource "aws_vpc_endpoint" "secrets_manager" {
+  vpc_id            = aws_vpc.main.id
+  service_name      = "com.amazonaws.${var.aws_region}.secretsmanager"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids         = aws_subnet.private[*].id
+  security_group_ids = [aws_security_group.vpce_secrets.id]
+
+  private_dns_enabled = true
+
+  # Enable DNS resolution (important!)
+  dns_options {
+    dns_record_ip_type = "ipv4"
+  }
+
+  tags = merge(var.tags, {
+    Name = "${local.vpc_name_with_slug}-vpce-secrets-manager"
+  })
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "vpce_secrets" {
+  name        = "${local.vpc_name_with_slug}-vpce-secrets-sg"
+  description = "Secrets Manager VPC Endpoint SG"
+  vpc_id      = aws_vpc.main.id
+
+  tags = merge(var.tags, {
+    Name = "${local.vpc_name_with_slug}-vpce-secrets-sg"
+  })
+}
+
+# Allow Lambda SG to access Secrets Manager via VPCE on HTTPS
+resource "aws_security_group_rule" "test" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  security_group_id        = aws_security_group.vpce_secrets.id
+  source_security_group_id = data.terraform_remote_state.notifications_lambda.outputs.lambda_sg_id
+}
+
+resource "aws_security_group_rule" "vpce_self_ingress" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  security_group_id        = aws_security_group.vpce_secrets.id
+  source_security_group_id = aws_security_group.vpce_secrets.id
+}
+
+# Allow VPCE to respond back to Lambda SG
+resource "aws_security_group_rule" "test2" {
+  type                     = "egress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  security_group_id        = aws_security_group.vpce_secrets.id
+  source_security_group_id = data.terraform_remote_state.notifications_lambda.outputs.lambda_sg_id
+}
+
+resource "aws_security_group_rule" "vpce_self_egress" {
+  type                     = "egress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  security_group_id        = aws_security_group.vpce_secrets.id
+  source_security_group_id = aws_security_group.vpce_secrets.id
 }
