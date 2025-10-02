@@ -161,7 +161,7 @@ resource "aws_security_group_rule" "test" {
   to_port                  = 443
   protocol                 = "tcp"
   security_group_id        = aws_security_group.vpce_secrets.id
-  source_security_group_id = data.terraform_remote_state.notifications_lambda.lambda_sg_id
+  source_security_group_id = data.terraform_remote_state.notifications_lambda.outputs.lambda_sg_id
 }
 
 # Allow VPCE to respond back to Lambda SG
@@ -171,5 +171,5 @@ resource "aws_security_group_rule" "test2" {
   to_port                  = 443
   protocol                 = "tcp"
   security_group_id        = aws_security_group.vpce_secrets.id
-  source_security_group_id = data.terraform_remote_state.notifications_lambda.lambda_sg_id
+  source_security_group_id = data.terraform_remote_state.notifications_lambda.outputs.lambda_sg_id
 }
