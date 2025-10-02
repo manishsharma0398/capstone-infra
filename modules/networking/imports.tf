@@ -3,7 +3,7 @@ data "terraform_remote_state" "notifications_lambda" {
 
   config = {
     bucket = "capstone-community-connect-tf-state"
-    key    = "lambda/capstone-notifications/${var.lambda_ci_environment_slug}.tfstate"
+    key    = "lambda/capstone-notifications/${var.environment_slug}.tfstate"
     region = "${var.lambda_region}"
   }
 }
