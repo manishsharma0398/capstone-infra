@@ -157,19 +157,37 @@ resource "aws_security_group" "vpce_secrets" {
 # Allow Lambda SG to access Secrets Manager via VPCE on HTTPS
 resource "aws_security_group_rule" "test" {
   type                     = "ingress"
-  from_port                = 443
-  to_port                  = 443
-  protocol                 = "tcp"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
   security_group_id        = aws_security_group.vpce_secrets.id
   source_security_group_id = data.terraform_remote_state.notifications_lambda.outputs.lambda_sg_id
+}
+
+# Allow Lambda SG to access Secrets Manager via VPCE on HTTPS
+resource "aws_security_group_rule" "vpce_self_ingress" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  security_group_id        = aws_security_group.vpce_secrets.id
+  source_security_group_id = aws_security_group.vpce_secrets.id
 }
 
 # Allow VPCE to respond back to Lambda SG
 resource "aws_security_group_rule" "test2" {
   type                     = "egress"
-  from_port                = 443
-  to_port                  = 443
-  protocol                 = "tcp"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
   security_group_id        = aws_security_group.vpce_secrets.id
-  source_security_group_id = data.terraform_remote_state.notifications_lambda.outputs.lambda_sg_id
+  source_security_group_id = aws_security_group.vpce_secrets.id
+}
+resource "aws_security_group_rule" "vpce_self_egress" {
+  type                     = "egress"
+  from_port                = 0
+  to_port                  = 0
+  protocol                 = "-1"
+  security_group_id        = aws_security_group.vpce_secrets.id
+  source_security_group_id = aws_security_group.vpce_secrets.id
 }
