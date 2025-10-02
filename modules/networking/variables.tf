@@ -1,3 +1,5 @@
+# modules\networking\variables.tf
+
 variable "aws_region" {
   description = "Default AWS region"
   default     = "ap-south-2"

@@ -1,3 +1,5 @@
+# modules\networking\main.tf
+
 locals {
   vpc_name_with_slug   = lower("${var.tags.Project}-${var.environment_slug}")
   full_vpc_name        = lower("${var.tags.Project}-${var.environment_slug}-vpc")
@@ -128,6 +130,11 @@ resource "aws_vpc_endpoint" "secrets_manager" {
 
   private_dns_enabled = true
 
+  # Enable DNS resolution (important!)
+  dns_options {
+    dns_record_ip_type = "ipv4"
+  }
+
   tags = merge(var.tags, {
     Name = "${local.vpc_name_with_slug}-vpce-secrets-manager"
   })
@@ -148,7 +155,7 @@ resource "aws_security_group" "vpce_secrets" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = var.private_subnets
+    cidr_blocks = [aws_vpc.main.cidr_block] # Use VPC CIDR instead of just private subnets
   }
 
   egress {
