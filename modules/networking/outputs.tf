@@ -22,6 +22,11 @@ output "private_subnet_ids" {
   value       = aws_subnet.private[*].id
 }
 
+output "private_subnet_cidrs" {
+  description = "CIDR blocks of private subnets (for SG ingress rules)"
+  value       = [for s in aws_subnet.private : s.cidr_block]
+}
+
 # ------------------------------
 # Public Route Table (default RTB renamed)
 # ------------------------------
@@ -44,4 +49,17 @@ output "private_route_table_ids" {
 output "s3_vpc_endpoint_id" {
   description = "ID of the S3 VPC endpoint"
   value       = aws_vpc_endpoint.s3.id
+}
+
+# ------------------------------
+# VPC Endpoint for Secrets Manager
+# ------------------------------
+output "secrets_manager_vpc_endpoint_id" {
+  description = "ID of the Secrets Manager VPC Endpoint"
+  value       = aws_vpc_endpoint.secrets_manager.id
+}
+
+output "secrets_manager_vpc_endpoint_sg_id" {
+  description = "ID of the Secrets Manager SG"
+  value       = aws_security_group.vpce_secrets.id
 }
