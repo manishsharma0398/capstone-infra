@@ -144,28 +144,32 @@ resource "aws_vpc_endpoint" "secrets_manager" {
   }
 }
 
-
 resource "aws_security_group" "vpce_secrets" {
   name        = "${local.vpc_name_with_slug}-vpce-secrets-sg"
   description = "Secrets Manager VPC Endpoint SG"
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description = "Allow VPC private subnets to access Secrets Manager"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [aws_vpc.main.cidr_block] # Use VPC CIDR instead of just private subnets
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   tags = merge(var.tags, {
     Name = "${local.vpc_name_with_slug}-vpce-secrets-sg"
   })
+}
+
+# Allow Lambda SG to access Secrets Manager via VPCE on HTTPS
+resource "aws_security_group_rule" "test" {
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.vpce_secrets.id
+  source_security_group_id = data.terraform_remote_state.notifications_lambda.lambda_sg_id
+}
+
+# Allow VPCE to respond back to Lambda SG
+resource "aws_security_group_rule" "test2" {
+  type                     = "egress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.vpce_secrets.id
+  source_security_group_id = data.terraform_remote_state.notifications_lambda.lambda_sg_id
 }
